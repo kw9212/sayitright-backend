@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import type { AuthRequest } from '../types/auth-request.type';
+import { getDailyRequestLimit } from '../utils/tier-calculator.util';
 
 /**
  * IP 기반 rate limiting (게스트 전용)
@@ -21,7 +22,7 @@ interface RateLimitRecord {
 @Injectable()
 export class IpRateLimitGuard implements CanActivate {
   private readonly limits = new Map<string, RateLimitRecord>();
-  private readonly MAX_REQUESTS = 3; // 일일 3회
+  private readonly MAX_REQUESTS = getDailyRequestLimit('guest');
   private readonly WINDOW_MS = 24 * 60 * 60 * 1000; // 24시간
 
   canActivate(context: ExecutionContext): boolean {
