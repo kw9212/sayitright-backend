@@ -5,7 +5,6 @@ import { EmailPromptBuilder } from './prompts/email-prompt.builder';
 import { sanitizeDraft, sanitizeCustomInputs } from '../common/utils/sanitize-input.util';
 import {
   calculateUserTier,
-  checkAdvancedFeatureAccess,
   getInputLimitByTier,
   type UserTierWithGuest,
 } from '../common/utils/tier-calculator.util';
@@ -91,17 +90,6 @@ export class AiService {
             usageCheck.reason || '오늘의 사용 횟수를 모두 사용했습니다.',
           );
         }
-
-        if (usesAdvancedFeatures && tier === 'premium') {
-          const access = checkAdvancedFeatureAccess({
-            creditBalance: user.creditBalance,
-            subscriptions: user.subscriptions,
-          });
-
-          if (!access.allowed && access.requiresCredit) {
-            throw new ForbiddenException(access.reason || '크레딧이 부족합니다.');
-          }
-        }
       }
       const relationship = sanitizedCustomInputs.relationship || dto.relationship;
       const purpose = sanitizedCustomInputs.purpose || dto.purpose;
@@ -130,40 +118,8 @@ export class AiService {
       const aiResponse = await this.callOpenAI(prompts);
       const { email, rationale } = EmailPromptBuilder.parseResponse(aiResponse.content);
 
-      let creditCharged = 0;
-      let remainingCredits: number | undefined;
-
-      if (user && usesAdvancedFeatures) {
-        const access = checkAdvancedFeatureAccess({
-          creditBalance: user.creditBalance,
-          subscriptions: user.subscriptions,
-        });
-
-        if (access.requiresCredit && access.allowed) {
-          creditCharged = AI_CONFIG.USER_TIERS.premium.creditCostPerAdvanced || 1;
-          await this.prisma.user.update({
-            where: { id: user.id },
-            data: {
-              creditBalance: {
-                decrement: creditCharged,
-              },
-            },
-          });
-
-          await this.prisma.creditTransaction.create({
-            data: {
-              userId: user.id,
-              amount: -creditCharged,
-              status: 'completed',
-              reason: '고급 이메일 생성',
-            },
-          });
-
-          remainingCredits = user.creditBalance - creditCharged;
-        } else if (!access.requiresCredit) {
-          remainingCredits = user.creditBalance;
-        }
-      }
+      const creditCharged = 0;
+      const remainingCredits: number | undefined = undefined;
 
       if (user) {
         const preview = email.length > 200 ? email.substring(0, 197) + '...' : email;

@@ -19,10 +19,6 @@ export function calculateUserTier(
     return 'premium';
   }
 
-  if (user.creditBalance > 0) {
-    return 'premium';
-  }
-
   return 'free';
 }
 
