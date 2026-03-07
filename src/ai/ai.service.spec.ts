@@ -61,6 +61,7 @@ describe('AiService', () => {
     usageTracking = module.get(UsageTrackingService);
 
     // OpenAI API Mock (간단히 성공 응답만)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     jest.spyOn(service['openai'].chat.completions, 'create').mockResolvedValue({
       id: 'test-completion',
       object: 'chat.completion',

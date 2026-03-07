@@ -12,10 +12,15 @@ export function hasActiveSubscription(subscriptions: Subscription[]): boolean {
 
 export function calculateUserTier(
   user: Pick<User, 'creditBalance'> & {
+    tier?: string | null;
     subscriptions?: Subscription[];
   },
 ): UserTier {
   if (user.subscriptions && hasActiveSubscription(user.subscriptions)) {
+    return 'premium';
+  }
+
+  if (user.tier === 'premium') {
     return 'premium';
   }
 

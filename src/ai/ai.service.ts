@@ -49,6 +49,7 @@ export class AiService {
       const tier: UserTierWithGuest = user
         ? calculateUserTier({
             creditBalance: user.creditBalance,
+            tier: user.tier,
             subscriptions: user.subscriptions,
           })
         : 'guest';

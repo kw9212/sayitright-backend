@@ -47,21 +47,12 @@ export class UsageTrackingService {
     reason?: string;
     remaining?: number;
   }> {
-    const usage = await this.getTodayUsage(userId);
-    const tierConfig = AI_CONFIG.USER_TIERS[userTier];
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { subscriptions: true },
-    });
-
-    const hasActiveSubscription = user?.subscriptions.some(
-      (sub) => sub.status === 'active' && new Date(sub.endAt) > new Date(),
-    );
-
-    if (hasActiveSubscription) {
+    if (userTier === 'premium') {
       return { allowed: true };
     }
+
+    const usage = await this.getTodayUsage(userId);
+    const tierConfig = AI_CONFIG.USER_TIERS[userTier];
 
     if (isAdvanced) {
       const limit = tierConfig.maxAdvancedPerDay || tierConfig.maxRequestsPerDay;
