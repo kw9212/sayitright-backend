@@ -1,3 +1,12 @@
+import * as Sentry from '@sentry/node';
+
+// Sentry는 앱 초기화 전에 가장 먼저 실행되어야 함
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  enabled: process.env.NODE_ENV === 'production',
+  tracesSampleRate: 1.0,
+});
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
