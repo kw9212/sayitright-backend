@@ -12,6 +12,7 @@ import {
 import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateTierDto } from './dto/update-tier.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -106,6 +107,29 @@ export class UsersController {
       },
     },
   })
+  @ApiOperation({
+    summary: '비밀번호 변경',
+    description: '현재 비밀번호 확인 및 이메일 인증 코드 검증 후 비밀번호를 변경합니다.',
+  })
+  @ApiOkResponse({
+    schema: {
+      properties: {
+        ok: { type: 'boolean', example: true },
+        message: { type: 'string', example: '비밀번호가 변경되었습니다.' },
+      },
+    },
+  })
+  @Put('me/password')
+  async changePassword(@Req() req: AuthRequest, @Body() dto: ChangePasswordDto) {
+    await this.usersService.changePassword(req.user.sub, {
+      currentPassword: dto.currentPassword,
+      newPassword: dto.newPassword,
+      emailCode: dto.emailCode,
+    });
+
+    return { message: '비밀번호가 변경되었습니다.' };
+  }
+
   @Put('me/tier')
   async updateTier(@Req() req: AuthRequest, @Body() dto: UpdateTierDto) {
     const user = await this.usersService.updateTier(req.user.sub, dto.tier);
