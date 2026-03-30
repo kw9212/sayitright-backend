@@ -351,6 +351,8 @@ npm run test:e2e      # E2E 테스트 (Docker 환경 필요)
 
 하지만 이를 구현하는 것은 생각보다 훨씬 복잡했습니다.
 
+---
+
 ### 문제 상황: AI는 똑똑하지만 맥락을 모른다
 
 초기에는 단순하게 접근했습니다. 사용자가 입력한 내용을 그대로 OpenAI API에 전달하면 되겠지, 라고요.
@@ -371,6 +373,8 @@ const response = await openai.chat.completions.create({
 - 관계(교수님/상사/동료)와 목적(사과/요청/감사)이 명확하지 않으면 AI도 적절한 톤을 선택할 수 없었음
 
 그래서 저는 이 문제를 사용자 입력에 관계, 목적, 톤, 길이 등의 **메타데이터**를 추가하여 AI에게 명확한 맥락을 제공해서 풀어보기로 했습니다.
+
+---
 
 하지만 또 다른 문제에 봉착했는데..
 
@@ -447,6 +451,8 @@ const response = await this.openai.chat.completions.create({
 });
 ```
 
+---
+
 ### 하지만 또 다른 문제: AI 응답을 어떻게 파싱할까?
 
 MVP를 완성하고 새로운 기능을 추가하던 중, 이런 생각이 들었습니다.
@@ -497,6 +503,8 @@ static parseResponse(aiResponse: string): { email: string; rationale?: string } 
 }
 ```
 
+---
+
 ### 결과: 일관되고 유지보수 가능한 AI 통신
 
 - **프롬프트 수정이 한 곳에서 관리**: 톤 추가, 언어 지원 확장 등이 Builder 클래스만 수정하면 됨
@@ -504,7 +512,7 @@ static parseResponse(aiResponse: string): { email: string; rationale?: string } 
 - **방어적 파싱 설계**: 다양한 구분자 형식 대응 정규식 + 미매칭 시 전체 응답을 이메일로 반환하는 fallback으로 예외 없는 안정적 동작 보장
 - **비즈니스 로직 집중**: Service는 티어 체크, 사용량 추적 등 핵심 로직에만 집중
 
-<br/>
+---
 
 ## ✒️ 회고
 
