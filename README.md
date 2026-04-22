@@ -248,7 +248,7 @@ test/                              # E2E 테스트
 | 구분 | 파일 수 | 테스트 케이스 |
 |------|---------|-------------|
 | 단위 테스트 (Jest) | 22개 | 285개 |
-| E2E 테스트 (Jest + Supertest) | 3개 | - |
+| E2E 테스트 (Jest + Supertest) | 5개 | - |
 
 > E2E 테스트는 실제 PostgreSQL + Redis 환경이 필요합니다. (`npm run test:e2e:setup`으로 Docker 실행 후 진행)
 
@@ -257,8 +257,8 @@ test/                              # E2E 테스트
 | 영역 | Statements | Branch | Functions |
 |------|-----------|--------|-----------|
 | 전체 | 60.64% | 51.02% | 65.83% |
-| common/* (guards, interceptors, utils) | ~97–100% | ~88–100% | 100% |
-| auth/guards, email | ~86–100% | ~85–94% | 100% |
+| common/* (guards, interceptors, utils) | ~84–100% | ~88–100% | 100% |
+| auth/guards, email | ~92–100% | ~85–94% | 100% |
 | archives, templates, notes, auth | ~55–72% | ~45–55% | ~56–71% |
 
 > DTOs, 모듈 설정 파일 등은 커버리지 수집 대상에 포함되어 전체 수치를 낮춥니다. **인프라 레이어(guards, interceptors, utils)와 핵심 서비스 로직 중심으로 커버리지를 확보**하는 것을 목표로 합니다.
