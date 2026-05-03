@@ -5,6 +5,7 @@ WORKDIR /app
 # 의존성 파일 먼저 복사 (레이어 캐시 활용)
 COPY package*.json ./
 COPY prisma ./prisma
+COPY scripts ./scripts
 
 RUN npm ci
 
