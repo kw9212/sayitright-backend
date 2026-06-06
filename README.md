@@ -11,7 +11,7 @@ SayItRight는 **이메일 초안을 상황에 맞게 정제**하고, 아카이�
 <p align="center">
   🌐 <a href="https://sayitright-web.vercel.app">서비스 페이지</a> &nbsp; | &nbsp;
   🖥️ <a href="https://github.com/kw9212/sayitright-web">프론트엔드 리포지토리</a> &nbsp; | &nbsp;
-  📖 <a href="http://43.201.99.231:3001/api">Swagger API 문서</a> &nbsp;
+  📖 <a href="https://sayitright-api.fly.dev/api">Swagger API 문서</a> &nbsp;
 </p>
 
 ## 📑 목차
@@ -27,14 +27,9 @@ SayItRight는 **이메일 초안을 상황에 맞게 정제**하고, 아카이�
 - [🏗️ 아키텍처](#️-아키텍처)
 - [📁 디렉토리 구조](#-디렉토리-구조)
 - [🧪 테스트](#-테스트)
-- [🛠️ 기술 상세](#️-기술-상세)
-  - [1. OpenAI 프롬프트 빌더 패턴 (EmailPromptBuilder)](#1-openai-프롬프트-빌더-패턴-emailpromptbuilder)
-  - [2. IP 기반 Rate Limiting (게스트 전용 Guard)](#2-ip-기반-rate-limiting-게스트-전용-guard)
-  - [3. Prisma 복합키 + Upsert (일일 사용량 추적)](#3-prisma-복합키--upsert-일일-사용량-추적)
-  - [4. 티어 계산 로직 분리 (tier-calculator.util.ts)](#4-티어-계산-로직-분리-tier-calculatorutilts)
-  - [5. Guard 조합 패턴으로 인증/인가 분리](#5-guard-조합-패턴으로-인증인가-분리)
-- [🎢 Challenges](#-challenges)
-  - [AI 프롬프트 설계: 유저의 초안을 어떻게 완성된 이메일로 바꿀까?](#ai-프롬프트-설계-유저의-초안을-어떻게-완성된-이메일로-바꿀까)
+- [🎢 Challenge](#-challenge)
+  - [1. 사용자 초안을 상황에 맞는 이메일로 바꾸기](#1-사용자-초안을-상황에-맞는-이메일로-바꾸기)
+  - [2. 게스트는 허용하되 AI API 남용은 막기](#2-게스트는-허용하되-ai-api-남용은-막기)
 - [✒️ 회고](#️-회고)
 
 <br/>
@@ -125,13 +120,13 @@ SayItRight은 이러한 고민에서 출발한 서비스입니다.
 
 ## 📖 API 문서 (Swagger)
 
-🔗 **[http://43.201.99.231:3001/api](http://43.201.99.231:3001/api)**
+🔗 **[https://sayitright-api.fly.dev/api](https://sayitright-api.fly.dev/api)**
 
-NestJS Swagger UI로 모든 엔드포인트를 브라우저에서 직접 테스트할 수 있습니다.
+NestJS Swagger UI로 모든 엔드포인트를 브라우저에서 직접 확인할 수 있습니다. 로컬 실행 시에는 `http://localhost:3001/api`에서 같은 문서를 확인할 수 있습니다.
 
 | 그룹 | 경로 | 주요 기능 |
 |---|---|---|
-| **auth** | `/v1/auth/*` | 회원가입 · 로그인 · 구글 OAuth · 이메일 인증 · 토큰 재발급 |
+| **auth** | `/v1/auth/*` | 회원가입 · 로그인 · 이메일 인증 · 비밀번호 재설정 · 토큰 재발급 · 로그아웃 |
 | **users** | `/v1/users/*` | 내 정보 조회 · 프로필 수정 · 티어 변경 |
 | **ai** | `/v1/ai/*` | 이메일 생성 (기본 / 고급) |
 | **archives** | `/v1/archives/*` | 아카이브 목록 · 생성 · 수정 · 삭제 · 페이지네이션 |
@@ -149,7 +144,7 @@ NestJS Swagger UI로 모든 엔드포인트를 브라우저에서 직접 테스�
 flowchart TD
     Client["Next.js (Vercel)"]
 
-    subgraph API["NestJS API 서버 (Railway)"]
+    subgraph API["NestJS API 서버 (Fly.io)"]
         direction TB
         Guard["JwtAccessGuard / JwtOptionalGuard / IpRateLimitGuard"]
         Controller["Controllers: auth · users · ai · archives · templates · notes"]
@@ -162,7 +157,7 @@ flowchart TD
 
     subgraph Infra["외부 인프라"]
         DB["PostgreSQL (Supabase)"]
-        Redis["Redis (Railway)"]
+        Redis["Redis (ioredis / REDIS_URL)"]
         OpenAI["OpenAI API gpt-4o-mini"]
         Mailer["Nodemailer SMTP"]
     end
@@ -196,7 +191,7 @@ src/
 │   ├── ai.service.ts
 │   └── dto/
 │
-├── auth/                          # 인증 (JWT, Google OAuth, 이메일 인증)
+├── auth/                          # 인증 (JWT, 이메일 인증, Refresh Token 세션)
 │   ├── guards/
 │   │   ├── jwt-access.guard.ts
 │   │   └── jwt-optional.guard.ts
@@ -251,17 +246,11 @@ test/                              # E2E 테스트
 | E2E 테스트 (Jest + Supertest) | 5개 | - |
 
 > E2E 테스트는 실제 PostgreSQL + Redis 환경이 필요합니다. (`npm run test:e2e:setup`으로 Docker 실행 후 진행)
+> 현재 단위 테스트 중 일부 spec은 최신 구현과 불일치하여 보정이 필요합니다. 로컬 확인 기준 `18 passed / 4 failed`, `259 passed / 26 failed / 285 total` 상태입니다.
 
-### 커버리지 (`npm run test:cov`)
+### 커버리지
 
-| 영역 | Statements | Branch | Functions |
-|------|-----------|--------|-----------|
-| 전체 | 60.64% | 51.02% | 65.83% |
-| common/* (guards, interceptors, utils) | ~84–100% | ~88–100% | 100% |
-| auth/guards, email | ~92–100% | ~85–94% | 100% |
-| archives, templates, notes, auth | ~55–72% | ~45–55% | ~56–71% |
-
-> DTOs, 모듈 설정 파일 등은 커버리지 수집 대상에 포함되어 전체 수치를 낮춥니다. **인프라 레이어(guards, interceptors, utils)와 핵심 서비스 로직 중심으로 커버리지를 확보**하는 것을 목표로 합니다.
+현재 테스트 실패가 있어 최신 커버리지 수치는 별도로 갱신이 필요합니다. 테스트 전략은 DTO·모듈 설정 파일보다 **guards, interceptors, utils, 핵심 service 로직**처럼 정책 변경 위험이 큰 레이어를 우선 검증하는 방향입니다.
 
 ### 실행 방법
 
@@ -273,244 +262,59 @@ npm run test:e2e      # E2E 테스트 (Docker 환경 필요)
 
 <br/>
 
-## 🛠️ 기술 상세
+## 🎢 Challenge
 
-### 1. OpenAI 프롬프트 빌더 패턴 (EmailPromptBuilder)
+### 1. 사용자 초안을 상황에 맞는 이메일로 바꾸기
 
-**구현 과정:** 사용자 입력 + 여러 필터(relationship, purpose, tone, length)를 조합해 OpenAI API에 전달
+**문제**
 
-**어려움:** 프롬프트 생성 로직이 복잡해지면서 Service 코드가 길어지고, 프롬프트 수정 시 부작용 위험
+OpenAI API에 사용자 초안만 그대로 전달하면 원하는 품질의 이메일이 나오지 않았습니다. 예를 들어 "죄송합니다"라는 입력만으로는 친구에게 보내는 사과인지, 교수님께 보내는 사과인지 알 수 없습니다. "미팅 요청"도 수신자, 목적, 톤이 없으면 결과가 모호해집니다.
 
-**해결:** `EmailPromptBuilder` 클래스로 system/user 프롬프트 생성과 응답 파싱 로직을 캡슐화. 응답 파싱은 `RATIONALE` / `FEEDBACK` / `피드백` 키워드와 `---` · `===` 구분자를 모두 허용하는 정규식으로 AI 응답 형식 변형에 유연하게 대응
+또 고급 기능에서는 이메일 본문과 개선 근거를 함께 받아야 했습니다. AI가 항상 같은 구분자로 응답하지 않기 때문에, 결과를 안정적으로 분리하는 문제도 있었습니다.
 
-**결과:** 프롬프트 수정이 `EmailPromptBuilder` 한 곳에서 관리되고, 테스트 가능한 순수 함수로 분리. 구분자 변형에 강건한 파싱으로 안정적인 응답 처리
+**고민**
 
----
+프롬프트는 계속 바뀔 가능성이 높은 영역입니다. 관계, 목적, 톤, 길이 같은 조건이 늘어날수록 Service 안에서 문자열을 직접 만들면 이메일 생성의 비즈니스 흐름과 프롬프트 세부사항이 강하게 섞입니다.
 
-### 2. IP 기반 Rate Limiting (게스트 전용 Guard)
+그래서 핵심 고민은 "프롬프트를 잘 만드는 것"뿐 아니라, "프롬프트 변경이 Service 전체를 흔들지 않게 만드는 것"이었습니다.
 
-**구현 과정:** 게스트 사용자가 이메일 생성 API를 무한 호출하면 OpenAI API 비용 폭탄 우려
+**해결**
 
-**어려움:** 게스트는 userId가 없어서 일반적인 Rate Limiting 불가. Redis 도입은 초기 단계에서 오버엔지니어링
+프롬프트 생성과 응답 파싱을 `EmailPromptBuilder`로 분리했습니다. 이 클래스는 언어에 맞는 system prompt를 만들고, 사용자 초안과 선택 조건을 모아 user prompt를 구성합니다.
 
-**해결:** NestJS Guard 패턴으로 `IpRateLimitGuard` 구현. 인메모리 Map으로 IP당 24시간 제한 적용. 요청 한도는 `getDailyRequestLimit('guest')`로 `tier-calculator.util.ts`와 단일 소스로 관리하여 정책 변경 시 한 곳만 수정. X-Forwarded-For 헤더로 프록시 환경 대응
+개선 근거가 필요한 경우에는 AI에게 이메일 본문 뒤에 별도 구분자로 설명을 붙이도록 요청했습니다. 응답을 파싱할 때는 `RATIONALE`, `FEEDBACK`, `피드백`처럼 실제로 나올 수 있는 구분자 변형을 정규식으로 처리했습니다.
 
-**결과:** 게스트 남용 방지 + 추가 인프라 없이 빠른 응답 속도. 한도 정책이 tier-calculator와 일관되게 유지
+**결과**
 
----
-
-### 3. Prisma 복합키 + Upsert (일일 사용량 추적)
-
-**구현 과정:** 사용자별로 일일 이메일 생성 횟수(basic/advanced 구분) 및 토큰 사용량 추적. 매일 0시 자동 리셋
-
-**어려움:** 동시 요청 시 카운팅 누락 또는 중복 위험. 날짜별 레코드를 수동으로 생성하면 race condition 발생
-
-**해결:** `UsageTracking` 테이블에 `userId_date` 복합키(Composite Key) 설정. 카운팅 증가 경로(`incrementUsage`)에 Prisma upsert를 적용해 조회/생성/업데이트를 원자적으로 처리. 날짜 문자열(YYYY-MM-DD)로 날짜별 자동 분리
-
-**결과:** 카운팅 증가 경로에서 race condition 없이 정확한 집계. 날짜가 바뀌면 자동으로 새 레코드 생성되어 리셋 로직 불필요
+`AiService`는 사용자 조회, 티어 계산, 사용량 체크, OpenAI 호출, 아카이브 저장이라는 흐름에 집중할 수 있게 되었습니다. 프롬프트 품질을 개선하거나 구분자 대응을 보강할 때는 `EmailPromptBuilder`만 보면 되므로 변경 범위가 명확해졌습니다.
 
 ---
 
-### 4. 티어 계산 로직 분리 (tier-calculator.util.ts)
+### 2. 게스트는 허용하되 AI API 남용은 막기
 
-**구현 과정:** 사용자 티어는 구독 상태(subscriptions)와 크레딧 잔액(creditBalance)에 따라 동적 결정
+**문제**
 
-**어려움:** 여러 테이블을 조인하고 복잡한 비즈니스 로직을 Service에 넣으면 테스트와 재사용이 어려움
+SayItRight의 이메일 생성 기능은 게스트도 사용할 수 있어야 했습니다. 하지만 게스트에게 AI 생성 API를 완전히 열어두면 OpenAI API 비용이 예측하기 어려워집니다.
 
-**해결:** 순수 함수 `calculateUserTier()`, `checkAdvancedFeatureAccess()`, `getDailyRequestLimit()` 등으로 분리. Prisma `include`로 필요한 데이터만 한 번에 조회 후 계산 함수에 전달
+반대로 이메일 생성 API를 로그인 필수로 만들면, 서비스의 핵심 가치를 체험하기 전에 회원가입을 요구하게 됩니다. 그래서 "게스트 접근 허용"과 "비용 통제"를 동시에 만족해야 했습니다.
 
-**결과:** 티어 로직이 Service(`ai.service`, `users.service`)와 Guard(`IpRateLimitGuard`)에서 동일한 함수로 재사용 가능. 단위 테스트로 엣지 케이스 검증 용이
+**고민**
 
----
+인증 정책은 엔드포인트마다 달랐습니다. 아카이브, 템플릿, 노트는 사용자 데이터이므로 로그인 필수입니다. 이메일 생성은 게스트도 통과해야 하지만, 게스트에게만 횟수 제한이 필요합니다.
 
-### 5. Guard 조합 패턴으로 인증/인가 분리
+이 로직을 Service 안에서 직접 분기하면, 새 API가 추가될 때 정책 누락이 생길 위험이 있습니다. 인증과 비즈니스 로직도 섞이게 됩니다.
 
-**구현 과정:** 일부 API는 로그인 필수, 일부는 게스트 허용, 일부는 IP Rate Limit 추가 적용
+**해결**
 
-**어려움:** 각 엔드포인트마다 인증 로직을 if문으로 체크하면 코드 중복 + 누락 위험
+NestJS Guard를 조합했습니다. 로그인 필수 API에는 `JwtAccessGuard`를 사용했습니다. 이메일 생성 API에는 `JwtOptionalGuard`와 `IpRateLimitGuard`를 함께 적용했습니다.
 
-**해결:** 3가지 Guard를 라우트별로 조합
+`JwtOptionalGuard`는 토큰이 있으면 사용자 정보를 요청에 넣고, 토큰이 없으면 게스트로 통과시킵니다. 그 다음 `IpRateLimitGuard`가 로그인 사용자는 통과시키고, 게스트만 IP 기준으로 하루 요청 횟수를 제한합니다.
 
-- `JwtAccessGuard`: 로그인 필수 엔드포인트 (토큰 없으면 401)
-- `JwtOptionalGuard`: 게스트·로그인 모두 허용 (토큰 있으면 `req.user` 설정, 없으면 통과)
-- `IpRateLimitGuard`: `JwtOptionalGuard` 뒤에 체이닝하여 게스트에만 Rate Limit 적용
+초기 단계에서는 인메모리 Map으로 IP별 카운터를 관리했습니다. 분산 서버 환경에서는 Redis 기반 rate limit으로 바꿔야 하지만, 현재 구현은 Guard 안에 격리되어 있어 교체 범위가 작습니다.
 
-**결과:** 라우터에 `@UseGuards()` 조합만 명시하면 인증 정책 자동 적용. 보안 정책이 코드에서 명시적으로 보이고, 각 Guard는 단위 테스트로 독립 검증 가능
+**결과**
 
----
-
-## 🎢 Challenges
-
-### AI 프롬프트 설계: 유저의 초안을 어떻게 완성된 이메일로 바꿀까?
-
-예를 들어 보겠습니다.
-
-처음 프로젝트를 구상할 때 목표로 삼았던 프로세스는 유저가 sayitright 이메일 작성 란에 다음과 같이 키워드만 적어도, 격식있고 공손하며 상황에 적절한 이메일로 변환해주는 것이었습니다.
-
-> "팀장님 일정 지연 / 작업 생각보다 오래 / 오늘 완료 어려움 / 수정 더 필요 / 내일 가능할 듯 / 확인 부탁"
-
-하지만 이를 구현하는 것은 생각보다 훨씬 복잡했습니다.
-
----
-
-### 문제 상황: AI는 똑똑하지만 맥락을 모른다
-
-초기에는 단순하게 접근했습니다. 사용자가 입력한 내용을 그대로 OpenAI API에 전달하면 되겠지, 라고요.
-
-```typescript
-// 초기 시도
-const prompt = `다음 내용으로 이메일을 작성해주세요: ${userInput}`;
-const response = await openai.chat.completions.create({
-  messages: [{ role: 'user', content: prompt }],
-});
-```
-
-하지만 결과는 예상과 다르게 의도와 전혀 다른 결과물을 생성했습니다.
-예를 들어,
-
-- "죄송합니다"를 입력하면 → 친구에게 보내는 듯한 캐주얼한 사과문이 생성됨
-- "미팅 요청"을 입력하면 → 누구에게 보내는 건지 모호한 이메일이 생성됨
-- 관계(교수님/상사/동료)와 목적(사과/요청/감사)이 명확하지 않으면 AI도 적절한 톤을 선택할 수 없었음
-
-그래서 저는 이 문제를 사용자 입력에 관계, 목적, 톤, 길이 등의 **메타데이터**를 추가하여 AI에게 명확한 맥락을 제공해서 풀어보기로 했습니다.
-
----
-
-하지만 또 다른 문제에 봉착했는데..
-
-> 이 메타데이터들을 어떻게 조합할 것인가?
-
-프롬프트 생성 로직이 Service 곳곳에 흩어지면 유지보수가 불가능해질 것 같았습니다.
-
-고민하던 중 복잡한 객체의 생성 과정과 그 안에 들어가는 필드들을 분리하여 인스턴스를 구성하는 패턴인 [Builder 패턴](https://inpa.tistory.com/entry/GOF-%F0%9F%92%A0-%EB%B9%8C%EB%8D%94Builder-%ED%8C%A8%ED%84%B4-%EB%81%9D%ED%8C%90%EC%99%95-%EC%A0%95%EB%A6%AC)이라는 것을 알게 되었고 SayitRight 프로젝트에 도입해봤습니다.
-
-```typescript
-// src/ai/prompts/email-prompt.builder.ts
-export class EmailPromptBuilder {
-  static build(request: EmailGenerationRequest): { system: string; user: string } {
-    return {
-      system: this.getSystemPrompt(request.language),
-      user: this.buildUserPrompt(request),
-    };
-  }
-
-  private static buildUserPrompt(request: EmailGenerationRequest): string {
-    const parts: string[] = [];
-
-    // 1. 사용자 입력
-    parts.push(`다음 내용을 바탕으로 이메일을 작성해주세요:\\n"${request.content}"\\n`);
-
-    // 2. 메타데이터 조건 추가
-    const constraints: string[] = [];
-    if (request.relationship) {
-      constraints.push(`- 수신자와의 관계: ${this.getRelationshipLabel(request.relationship)}`);
-    }
-    if (request.purpose) {
-      constraints.push(`- 이메일 목적: ${this.getPurposeLabel(request.purpose)}`);
-    }
-    if (request.tone) {
-      constraints.push(`- 톤: ${this.getToneLabel(request.tone)}`);
-    }
-
-    if (constraints.length > 0) {
-      parts.push(`\\n다음 조건을 고려해주세요:\\n${constraints.join('\\n')}`);
-    }
-
-    // 3. 고급 기능: 개선 근거 요청
-    if (request.includeRationale) {
-      parts.push(
-        `\\n\\n응답 형식:\\n` +
-          `1. 먼저 완성된 이메일을 작성하고\\n` +
-          `2. "---RATIONALE---" 구분자 다음에\\n` +
-          `3. 왜 이렇게 작성했는지 개선 근거를 상세히 설명해주세요.`,
-      );
-    }
-
-    return parts.join('');
-  }
-}
-```
-
-이제 프롬프트 생성은 한 곳에서 관리되고, Service는 비즈니스 로직에만 집중할 수 있게 되었습니다.
-
-```typescript
-// Service에서는 단순하게 호출
-const prompts = EmailPromptBuilder.build({
-  content: '죄송합니다',
-  relationship: 'professor',
-  purpose: 'apology',
-  tone: 'formal',
-  language: 'ko',
-});
-
-const response = await this.openai.chat.completions.create({
-  messages: [
-    { role: 'system', content: prompts.system },
-    { role: 'user', content: prompts.user },
-  ],
-});
-```
-
----
-
-### 하지만 또 다른 문제: AI 응답을 어떻게 파싱할까?
-
-MVP를 완성하고 새로운 기능을 추가하던 중, 이런 생각이 들었습니다.
-
-> 🤔 MVP에서는 간단하게 처리하는 것을 구현했다면 이후 추가할 기능으로는 반대로 조금 더 섬세한 요청과 결과를 받아볼 수 있게 하면 어떨까?
-
-그래서 추가한 것이 고급 기능입니다.
-
-고급 기능을 사용하면 유저는 프롬프트를 조금 더 구체적인 조건으로 작성할 수 있습니다.
-
-톤과 글자 수를 조정할 수 있고 다듬어진 이메일 뿐만 아니라 왜 그렇게 작성되었는지 **개선 근거**까지 받아볼 수 있게 됩니다.
-
-문제는 이 두 가지를 어떻게 분리할 것인가였습니다.
-
-```text
-[AI 응답 예시]
-안녕하세요 교수님,
-
-어제 수업에 늦어 죄송합니다. 다음부터는...
-
-(이메일 내용 계속)
-
----RATIONALE---
-교수님께 보내는 사과 이메일이므로 격식있는 톤을 사용했고...
-```
-
-단순히 `split('---RATIONALE---')`을 쓸 수도 있지만, AI가 항상 정확히 이 형식을 지킬 거라는 보장은 없습니다. 대소문자를 섞어 쓸 수도 있고, 한글로 `---피드백---`이라고 쓸 수도 있죠.
-
-이러한 문제는 **정규식 패턴 매칭**으로 대응했습니다.
-
-```typescript
-static parseResponse(aiResponse: string): { email: string; rationale?: string } {
-  // 대소문자 구분 없이, 여러 구분자 형식 모두 대응
-  const separatorPattern = /[-=]{3,}\\s*(RATIONALE|rationale|Rationale|피드백|FEEDBACK)\\s*[-=]{3,}/i;
-  const match = aiResponse.match(separatorPattern);
-
-  if (match) {
-    const parts = aiResponse.split(separatorPattern);
-    return {
-      email: parts[0].trim(),
-      rationale: parts[parts.length - 1].trim(),
-    };
-  }
-
-  return {
-    email: aiResponse.trim(),
-  };
-}
-```
-
----
-
-### 결과: 일관되고 유지보수 가능한 AI 통신
-
-- **프롬프트 수정이 한 곳에서 관리**: 톤 추가, 언어 지원 확장 등이 Builder 클래스만 수정하면 됨
-- **테스트 가능한 순수 함수**: Service와 분리되어 단위 테스트 작성 용이
-- **방어적 파싱 설계**: 다양한 구분자 형식 대응 정규식 + 미매칭 시 전체 응답을 이메일로 반환하는 fallback으로 예외 없는 안정적 동작 보장
-- **비즈니스 로직 집중**: Service는 티어 체크, 사용량 추적 등 핵심 로직에만 집중
+이메일 생성 API는 게스트에게 열어두면서도 최소한의 비용 방어선을 갖게 되었습니다. 인증 정책은 라우트의 Guard 조합으로 드러나기 때문에 코드 리뷰 시 어떤 API가 어떤 보안 정책을 갖는지 파악하기 쉬워졌습니다.
 
 ---
 
