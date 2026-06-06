@@ -1,0 +1,89 @@
+<svg width="1280" height="820" viewBox="0 0 1280 820" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1L9 5L1 9" fill="none" stroke="#334155" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrow-dashed" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1L9 5L1 9" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="820" rx="28" fill="#F8FAFC"/>
+
+  <text x="64" y="72" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="32" font-weight="700">SayItRight Backend Architecture</text>
+  <text x="64" y="105" fill="#475569" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="17">Fly.io 기반 NestJS API 서버와 외부 인프라 연동 구조</text>
+
+  <rect x="60" y="172" width="220" height="88" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="170" y="207" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="18" font-weight="700" text-anchor="middle">Next.js</text>
+  <text x="170" y="234" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" text-anchor="middle">Vercel Client</text>
+
+  <rect x="365" y="138" width="520" height="522" rx="22" fill="#EEF6FF" stroke="#93C5FD" stroke-width="2"/>
+  <text x="625" y="180" fill="#1E3A8A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="24" font-weight="700" text-anchor="middle">NestJS API Server</text>
+  <text x="625" y="207" fill="#2563EB" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="16" text-anchor="middle">Fly.io</text>
+
+  <rect x="430" y="242" width="390" height="60" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="625" y="268" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="700" text-anchor="middle">Guards</text>
+  <text x="625" y="289" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="13" text-anchor="middle">JwtAccessGuard / JwtOptionalGuard / IpRateLimitGuard</text>
+
+  <rect x="430" y="340" width="390" height="60" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="625" y="367" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="700" text-anchor="middle">Controllers</text>
+  <text x="625" y="388" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="13" text-anchor="middle">auth / users / ai / archives / templates / notes</text>
+
+  <rect x="430" y="438" width="390" height="60" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="625" y="465" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="16" font-weight="700" text-anchor="middle">Services</text>
+  <text x="625" y="486" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="13" text-anchor="middle">ai / auth / archives / templates / notes / email</text>
+
+  <rect x="430" y="550" width="178" height="58" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="519" y="575" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">EmailPromptBuilder</text>
+  <text x="519" y="596" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="12" text-anchor="middle">프롬프트 / 파싱</text>
+
+  <rect x="642" y="550" width="178" height="58" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+  <text x="731" y="575" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">tier-calculator</text>
+  <text x="731" y="596" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="12" text-anchor="middle">등급 / 한도 정책</text>
+
+  <rect x="930" y="180" width="275" height="390" rx="22" fill="#F0FDF4" stroke="#86EFAC" stroke-width="2"/>
+  <text x="1067.5" y="222" fill="#166534" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="23" font-weight="700" text-anchor="middle">External Infra</text>
+
+  <rect x="970" y="262" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <text x="1067.5" y="293" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">PostgreSQL (Supabase)</text>
+
+  <rect x="970" y="340" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <text x="1067.5" y="371" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">Redis (REDIS_URL)</text>
+
+  <rect x="970" y="418" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <text x="1067.5" y="449" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">OpenAI gpt-4o-mini</text>
+
+  <rect x="970" y="496" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
+  <text x="1067.5" y="527" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">Nodemailer SMTP</text>
+
+  <rect x="92" y="348" width="210" height="54" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="197" y="381" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">ResponseInterceptor</text>
+
+  <rect x="92" y="438" width="210" height="54" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="197" y="471" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">HttpExceptionFilter</text>
+
+  <path d="M280 216H428" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <text x="354" y="198" fill="#475569" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="13" text-anchor="middle">HTTPS + JWT Bearer</text>
+
+  <path d="M625 302V338" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M625 400V436" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M576 498L535 548" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M674 498L715 548" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+  <path d="M302 375H428" stroke="#64748B" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow-dashed)"/>
+  <path d="M302 465H428" stroke="#64748B" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow-dashed)"/>
+  <text x="360" y="356" fill="#64748B" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="12" text-anchor="middle">전역 적용</text>
+
+  <path d="M820 468H968" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M820 468C880 468 888 365 968 365" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M820 468C880 468 888 443 968 443" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <path d="M820 468C880 468 888 521 968 521" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+  <rect x="64" y="710" width="1152" height="54" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="640" y="743" fill="#475569" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" text-anchor="middle">
+    핵심 흐름: Client → Guards → Controllers → Services → Prompt/Policy Modules → Database · Redis · OpenAI · SMTP
+  </text>
+</svg>

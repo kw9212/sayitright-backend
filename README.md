@@ -140,40 +140,7 @@ NestJS Swagger UI로 모든 엔드포인트를 브라우저에서 직접 확인�
 
 ## 🏗️ 아키텍처
 
-```mermaid
-flowchart TD
-    Client["Next.js (Vercel)"]
-
-    subgraph API["NestJS API 서버 (Fly.io)"]
-        direction TB
-        Guard["JwtAccessGuard / JwtOptionalGuard / IpRateLimitGuard"]
-        Controller["Controllers: auth · users · ai · archives · templates · notes"]
-        Service["Services: ai · auth · archives · templates · notes · email"]
-        Interceptor["ResponseInterceptor (전역 응답 포맷)"]
-        Filter["HttpExceptionFilter (전역 예외 처리)"]
-        Builder["EmailPromptBuilder"]
-        TierCalc["tier-calculator.util"]
-    end
-
-    subgraph Infra["외부 인프라"]
-        DB["PostgreSQL (Supabase)"]
-        Redis["Redis (ioredis / REDIS_URL)"]
-        OpenAI["OpenAI API gpt-4o-mini"]
-        Mailer["Nodemailer SMTP"]
-    end
-
-    Client -->|"HTTPS + JWT Bearer"| Guard
-    Guard --> Controller
-    Controller --> Service
-    Service --> Builder
-    Service --> TierCalc
-    Interceptor -.->|전역 적용| Controller
-    Filter -.->|전역 적용| Controller
-    Service --> DB
-    Service --> Redis
-    Service --> OpenAI
-    Service --> Mailer
-```
+![Backend Architecture](images/backend-architecture.svg)
 
 <br/>
 
