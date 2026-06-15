@@ -48,7 +48,7 @@
   <text x="1067.5" y="222" fill="#166534" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="23" font-weight="700" text-anchor="middle">External Infra</text>
 
   <rect x="970" y="262" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
-  <text x="1067.5" y="293" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">PostgreSQL (Supabase)</text>
+  <text x="1067.5" y="293" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">PostgreSQL (NeonDB)</text>
 
   <rect x="970" y="340" width="195" height="50" rx="11" fill="#FFFFFF" stroke="#BBF7D0" stroke-width="2"/>
   <text x="1067.5" y="371" fill="#0F172A" font-family="Arial, Apple SD Gothic Neo, sans-serif" font-size="15" font-weight="700" text-anchor="middle">Redis (REDIS_URL)</text>
